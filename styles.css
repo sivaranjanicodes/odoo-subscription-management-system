@@ -333,3 +333,14 @@ th {
 [hidden] {
   display: none !important;
 }
+
+.badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; background: #eee; }
+.badge-active, .badge-paid, .badge-confirmed { background: #d9f2e3; color: #197344; }
+.badge-draft, .badge-quotation, .badge-paused { background: #fff3cd; color: #8a6d00; }
+.badge-closed, .badge-cancelled { background: #e5e7eb; color: #444; }
+.badge-overdue { background: #fde2e0; color: #b42318; }
+.btn-sm { padding: 3px 8px; font-size: 12px; cursor: pointer; }
+#toast { position: fixed; bottom: 20px; right: 20px; background: #197344; color: #fff;
+         padding: 10px 16px; border-radius: 6px; display: none; z-index: 99; max-width: 360px; }
+#toast.show { display: block; }
+#toast.error { background: #b42318; }
