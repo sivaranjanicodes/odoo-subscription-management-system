@@ -121,8 +121,44 @@
       </section>
       <section id="subscriptionsPage" hidden>
         <div class="panel">
+          <h2>Add Subscription</h2>
+          <form id="subscriptionForm">
+            <input
+              id="customerName"
+              type="text"
+              placeholder="Customer name"
+              required
+            />
+            <input
+              id="subscriptionPlan"
+              type="text"
+              placeholder="Plan name"
+              required
+            />
+            <input
+              id="subscriptionAmount"
+              type="number"
+              min="0"
+              placeholder="Amount"
+              required
+            />
+            <button type="submit">Add Subscription</button>
+          </form>
+        </div>
+
+        <div class="panel">
           <h2>Subscriptions</h2>
-          <p>Subscription management will be added here next.</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="allSubscriptionsTable"></tbody>
+          </table>
         </div>
       </section>
     </main>

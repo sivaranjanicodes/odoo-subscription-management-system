@@ -24,18 +24,18 @@ const subscriptions = [
 
 const subscriptionTable = document.getElementById("subscriptionTable");
 
-subscriptions.forEach((subscription) => {
-  const row = document.createElement("tr");
+function renderDashboardSubscriptions() {
+  subscriptionTable.innerHTML = subscriptions.map((subscription) => `
+    <tr>
+      <td>${subscription.customer}</td>
+      <td>${subscription.plan}</td>
+      <td>₹${subscription.amount.toLocaleString("en-IN")}</td>
+      <td><span class="status">${subscription.status}</span></td>
+    </tr>
+  `).join("");
+}
 
-  row.innerHTML = `
-    <td>${subscription.customer}</td>
-    <td>${subscription.plan}</td>
-    <td>₹${subscription.amount.toLocaleString("en-IN")}</td>
-    <td><span class="status">${subscription.status}</span></td>
-  `;
-
-  subscriptionTable.appendChild(row);
-});
+renderDashboardSubscriptions();
 
 
 // --------------------
@@ -66,9 +66,7 @@ pageLinks.forEach((link) => {
     const selectedPage = pages[title];
 
     // Ignore menu items whose pages are not built yet.
-    if (!selectedPage) {
-      return;
-    }
+    if (!selectedPage) return;
 
     Object.values(pages).forEach((page) => {
       page.hidden = true;
@@ -76,11 +74,9 @@ pageLinks.forEach((link) => {
 
     selectedPage.hidden = false;
 
-    pageLinks.forEach((item) => {
-      item.classList.remove("active");
-    });
-
+    pageLinks.forEach((item) => item.classList.remove("active"));
     link.classList.add("active");
+
     pageTitle.textContent = title;
     pageDescription.textContent = pageDescriptions[title];
   });
@@ -123,4 +119,41 @@ productForm.addEventListener("submit", (event) => {
   `).join("");
 
   productForm.reset();
+});
+
+
+// --------------------
+// Add subscriptions
+// --------------------
+const subscriptionForm = document.getElementById("subscriptionForm");
+const allSubscriptionsTable = document.getElementById("allSubscriptionsTable");
+
+function renderAllSubscriptions() {
+  allSubscriptionsTable.innerHTML = subscriptions.map((subscription) => `
+    <tr>
+      <td>${subscription.customer}</td>
+      <td>${subscription.plan}</td>
+      <td>₹${subscription.amount.toLocaleString("en-IN")}</td>
+      <td><span class="status">${subscription.status}</span></td>
+    </tr>
+  `).join("");
+}
+
+renderAllSubscriptions();
+
+subscriptionForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const newSubscription = {
+    customer: document.getElementById("customerName").value.trim(),
+    plan: document.getElementById("subscriptionPlan").value.trim(),
+    amount: Number(document.getElementById("subscriptionAmount").value),
+    status: "Active"
+  };
+
+  subscriptions.push(newSubscription);
+
+  renderAllSubscriptions();
+  renderDashboardSubscriptions();
+  subscriptionForm.reset();
 });
