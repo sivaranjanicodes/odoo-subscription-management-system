@@ -1,5 +1,5 @@
 // --------------------
-// Dashboard subscriptions
+// Sample subscription data
 // --------------------
 const subscriptions = [
   {
@@ -22,9 +22,15 @@ const subscriptions = [
   }
 ];
 
+
+// --------------------
+// Dashboard subscriptions table
+// --------------------
 const subscriptionTable = document.getElementById("subscriptionTable");
 
 function renderDashboardSubscriptions() {
+  if (!subscriptionTable) return;
+
   subscriptionTable.innerHTML = subscriptions.map((subscription) => `
     <tr>
       <td>${subscription.customer}</td>
@@ -46,13 +52,17 @@ const pageLinks = document.querySelectorAll(".sidebar nav a");
 const pages = {
   "Dashboard": document.getElementById("dashboardPage"),
   "Products & Plans": document.getElementById("productsPage"),
-  "Subscriptions": document.getElementById("subscriptionsPage")
+  "Subscriptions": document.getElementById("subscriptionsPage"),
+  "Invoices": document.getElementById("invoicesPage"),
+  "Payments": document.getElementById("paymentsPage")
 };
 
 const pageDescriptions = {
   "Dashboard": "Welcome back! Here's your business overview.",
   "Products & Plans": "Manage your products and subscription plans.",
-  "Subscriptions": "View and manage customer subscriptions."
+  "Subscriptions": "View and manage customer subscriptions.",
+  "Invoices": "View customer invoices and payment status.",
+  "Payments": "View customer payment records and status."
 };
 
 const pageTitle = document.getElementById("pageTitle");
@@ -69,7 +79,7 @@ pageLinks.forEach((link) => {
     if (!selectedPage) return;
 
     Object.values(pages).forEach((page) => {
-      page.hidden = true;
+      if (page) page.hidden = true;
     });
 
     selectedPage.hidden = false;
@@ -77,8 +87,10 @@ pageLinks.forEach((link) => {
     pageLinks.forEach((item) => item.classList.remove("active"));
     link.classList.add("active");
 
-    pageTitle.textContent = title;
-    pageDescription.textContent = pageDescriptions[title];
+    if (pageTitle) pageTitle.textContent = title;
+    if (pageDescription) {
+      pageDescription.textContent = pageDescriptions[title];
+    }
   });
 });
 
@@ -86,9 +98,13 @@ pageLinks.forEach((link) => {
 // --------------------
 // Run Billing Day button
 // --------------------
-document.getElementById("billingBtn").addEventListener("click", () => {
-  alert("Billing API will be connected after backend integration.");
-});
+const billingButton = document.getElementById("billingBtn");
+
+if (billingButton) {
+  billingButton.addEventListener("click", () => {
+    alert("Billing API will be connected after backend integration.");
+  });
+}
 
 
 // --------------------
@@ -99,36 +115,40 @@ const products = [];
 const productForm = document.getElementById("productForm");
 const productTable = document.getElementById("productTable");
 
-productForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+if (productForm && productTable) {
+  productForm.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-  const product = {
-    name: document.getElementById("productName").value.trim(),
-    price: Number(document.getElementById("productPrice").value),
-    type: document.getElementById("productType").value
-  };
+    const product = {
+      name: document.getElementById("productName").value.trim(),
+      price: Number(document.getElementById("productPrice").value),
+      type: document.getElementById("productType").value
+    };
 
-  products.push(product);
+    products.push(product);
 
-  productTable.innerHTML = products.map((item) => `
-    <tr>
-      <td>${item.name}</td>
-      <td>${item.type}</td>
-      <td>₹${item.price.toLocaleString("en-IN")}</td>
-    </tr>
-  `).join("");
+    productTable.innerHTML = products.map((item) => `
+      <tr>
+        <td>${item.name}</td>
+        <td>${item.type}</td>
+        <td>₹${item.price.toLocaleString("en-IN")}</td>
+      </tr>
+    `).join("");
 
-  productForm.reset();
-});
+    productForm.reset();
+  });
+}
 
 
 // --------------------
-// Add subscriptions
+// Subscriptions page
 // --------------------
 const subscriptionForm = document.getElementById("subscriptionForm");
 const allSubscriptionsTable = document.getElementById("allSubscriptionsTable");
 
 function renderAllSubscriptions() {
+  if (!allSubscriptionsTable) return;
+
   allSubscriptionsTable.innerHTML = subscriptions.map((subscription) => `
     <tr>
       <td>${subscription.customer}</td>
@@ -141,19 +161,102 @@ function renderAllSubscriptions() {
 
 renderAllSubscriptions();
 
-subscriptionForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+if (subscriptionForm) {
+  subscriptionForm.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-  const newSubscription = {
-    customer: document.getElementById("customerName").value.trim(),
-    plan: document.getElementById("subscriptionPlan").value.trim(),
-    amount: Number(document.getElementById("subscriptionAmount").value),
-    status: "Active"
-  };
+    const newSubscription = {
+      customer: document.getElementById("customerName").value.trim(),
+      plan: document.getElementById("subscriptionPlan").value.trim(),
+      amount: Number(document.getElementById("subscriptionAmount").value),
+      status: "Active"
+    };
 
-  subscriptions.push(newSubscription);
+    subscriptions.push(newSubscription);
 
-  renderAllSubscriptions();
-  renderDashboardSubscriptions();
-  subscriptionForm.reset();
-});
+    renderAllSubscriptions();
+    renderDashboardSubscriptions();
+    subscriptionForm.reset();
+  });
+}
+
+
+// --------------------
+// Invoices sample data
+// --------------------
+const invoices = [
+  {
+    id: "INV-001",
+    customer: "ABC Technologies",
+    amount: 5000,
+    dueDate: "2026-11-15",
+    status: "Paid"
+  },
+  {
+    id: "INV-002",
+    customer: "Green Store",
+    amount: 1000,
+    dueDate: "2026-11-20",
+    status: "Pending"
+  }
+];
+
+const invoiceTable = document.getElementById("invoiceTable");
+
+if (invoiceTable) {
+  invoiceTable.innerHTML = invoices.map((invoice) => `
+    <tr>
+      <td>${invoice.id}</td>
+      <td>${invoice.customer}</td>
+      <td>₹${invoice.amount.toLocaleString("en-IN")}</td>
+      <td>${invoice.dueDate}</td>
+      <td>${invoice.status}</td>
+    </tr>
+  `).join("");
+}
+
+
+// --------------------
+// Payments sample data
+// --------------------
+const payments = [
+  {
+    id: "PAY-001",
+    customer: "ABC Technologies",
+    amount: 5000,
+    date: "2026-10-25",
+    method: "UPI",
+    status: "Successful"
+  },
+  {
+    id: "PAY-002",
+    customer: "Green Store",
+    amount: 1000,
+    date: "2026-10-26",
+    method: "Card",
+    status: "Pending"
+  },
+  {
+    id: "PAY-003",
+    customer: "Tech Solutions",
+    amount: 2500,
+    date: "2026-10-27",
+    method: "Bank Transfer",
+    status: "Failed"
+  }
+];
+
+const paymentTable = document.getElementById("paymentTable");
+
+if (paymentTable) {
+  paymentTable.innerHTML = payments.map((payment) => `
+    <tr>
+      <td>${payment.id}</td>
+      <td>${payment.customer}</td>
+      <td>₹${payment.amount.toLocaleString("en-IN")}</td>
+      <td>${payment.date}</td>
+      <td>${payment.method}</td>
+      <td>${payment.status}</td>
+    </tr>
+  `).join("");
+}

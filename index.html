@@ -16,8 +16,8 @@
         <a href="#" class="active" data-page="dashboardPage">Dashboard</a>
         <a href="#" data-page="productsPage">Products &amp; Plans</a>
         <a href="#">Subscriptions</a>
-        <a href="#">Invoices</a>
-        <a href="#">Payments</a>
+        <a href="#" data-page="invoicesPage">Invoices</a>
+        <a href="#" data-page="paymentsPage">Payments</a>
       </nav>
     </aside>
 
@@ -158,6 +158,43 @@
               </tr>
             </thead>
             <tbody id="allSubscriptionsTable"></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="invoicesPage" hidden>
+        <div class="panel">
+          <h2>Invoices</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice ID</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="invoiceTable"></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="paymentsPage" hidden>
+        <div class="panel">
+          <h2>Payments</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Payment ID</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Payment Date</th>
+                <th>Method</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="paymentTable"></tbody>
           </table>
         </div>
       </section>
