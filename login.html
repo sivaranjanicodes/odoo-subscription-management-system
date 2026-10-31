@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Brightloop</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="auth-page">
+    <main class="auth-card">
+      <h1>Brightloop</h1>
+      <h2>Log in</h2>
+      <p>Welcome back. Enter your account details.</p>
+
+      <form id="loginForm">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" type="email" autocomplete="email" required />
+
+        <label for="loginPassword">Password</label>
+        <input
+          id="loginPassword"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+
+        <button type="submit">Log in</button>
+        <p id="loginMessage" role="status"></p>
+      </form>
+
+      <p>New to Brightloop? <a href="register.html">Create an account</a></p>
+    </main>
+
+    <script src="auth.js"></script>
+  </body>
+</html>
