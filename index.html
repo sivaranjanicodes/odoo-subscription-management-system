@@ -1,70 +1,126 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Brightloop | Subscription Management</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <aside class="sidebar">
-        <h2>Brightloop</h2>
-        <p class="subtitle">Subscription Manager</p>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
 
-        <nav>
-            <a href="#" class="active">Dashboard</a>
-            <a href="#">Products & Plans</a>
-            <a href="#">Subscriptions</a>
-            <a href="#">Invoices</a>
-            <a href="#">Payments</a>
-        </nav>
+  <body>
+    <aside class="sidebar">
+      <h2>Brightloop</h2>
+      <p class="subtitle">Subscription Manager</p>
+
+      <nav>
+        <a href="#" class="active" data-page="dashboardPage">Dashboard</a>
+        <a href="#" data-page="productsPage">Products &amp; Plans</a>
+        <a href="#">Subscriptions</a>
+        <a href="#">Invoices</a>
+        <a href="#">Payments</a>
+      </nav>
     </aside>
 
     <main class="main">
-        <header>
-            <div>
-                <h1>Dashboard</h1>
-                <p>Welcome back! Here's your business overview.</p>
-            </div>
-            <button id="billingBtn">Run Billing Day</button>
-        </header>
+      <header>
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageDescription">
+            Welcome back! Here's your business overview.
+          </p>
+        </div>
+        <button id="billingBtn" type="button">Run Billing Day</button>
+      </header>
 
+      <section id="dashboardPage">
         <section class="cards">
-            <div class="card">
-                <p>Active Subscriptions</p>
-                <h2 id="activeCount">250</h2>
-            </div>
-            <div class="card">
-                <p>Monthly Revenue</p>
-                <h2 id="revenue">₹2,50,000</h2>
-            </div>
-            <div class="card">
-                <p>Payments Received</p>
-                <h2>₹2,00,000</h2>
-            </div>
-            <div class="card">
-                <p>Overdue Invoices</p>
-                <h2>12</h2>
-            </div>
+          <div class="card">
+            <p>Active Subscriptions</p>
+            <h2 id="activeCount">250</h2>
+          </div>
+
+          <div class="card">
+            <p>Monthly Revenue</p>
+            <h2 id="revenue">₹2,50,000</h2>
+          </div>
+
+          <div class="card">
+            <p>Payments Received</p>
+            <h2>₹2,00,000</h2>
+          </div>
+
+          <div class="card">
+            <p>Overdue Invoices</p>
+            <h2>12</h2>
+          </div>
         </section>
 
         <section class="panel">
-            <h2>Recent Subscriptions</h2>
+          <h2>Recent Subscriptions</h2>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Customer</th>
-                        <th>Plan</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="subscriptionTable"></tbody>
-            </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="subscriptionTable"></tbody>
+          </table>
         </section>
+      </section>
+
+      <section id="productsPage" hidden>
+        <div class="panel">
+          <h2>Add New Product</h2>
+
+          <form id="productForm">
+            <input
+              id="productName"
+              type="text"
+              placeholder="Product name"
+              required
+            />
+
+            <input
+              id="productPrice"
+              type="number"
+              placeholder="Sales price"
+              min="0"
+              step="0.01"
+              required
+            />
+
+            <select id="productType" required>
+              <option value="">Select product type</option>
+              <option value="Software">Software</option>
+              <option value="Add-on">Add-on</option>
+              <option value="Service">Service</option>
+            </select>
+
+            <button type="submit">Add Product</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h2>Products &amp; Plans</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Type</th>
+                <th>Sales Price</th>
+              </tr>
+            </thead>
+            <tbody id="productTable"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
 
     <script src="app.js"></script>
-</body>
+  </body>
 </html>
