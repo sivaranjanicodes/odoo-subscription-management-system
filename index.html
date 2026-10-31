@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brightloop | Subscription Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <h2>Brightloop</h2>
+        <p class="subtitle">Subscription Manager</p>
+
+        <nav>
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Products & Plans</a>
+            <a href="#">Subscriptions</a>
+            <a href="#">Invoices</a>
+            <a href="#">Payments</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header>
+            <div>
+                <h1>Dashboard</h1>
+                <p>Welcome back! Here's your business overview.</p>
+            </div>
+            <button id="billingBtn">Run Billing Day</button>
+        </header>
+
+        <section class="cards">
+            <div class="card">
+                <p>Active Subscriptions</p>
+                <h2 id="activeCount">250</h2>
+            </div>
+            <div class="card">
+                <p>Monthly Revenue</p>
+                <h2 id="revenue">₹2,50,000</h2>
+            </div>
+            <div class="card">
+                <p>Payments Received</p>
+                <h2>₹2,00,000</h2>
+            </div>
+            <div class="card">
+                <p>Overdue Invoices</p>
+                <h2>12</h2>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Recent Subscriptions</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="subscriptionTable"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
