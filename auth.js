@@ -1,18 +1,49 @@
-const DEMO_USER_KEY = "brightloopDemoUser";
-const DEMO_PASSWORD_KEY = "brightloopDemoPassword";
-const DEMO_LOGGED_IN_KEY = "brightloopDemoLoggedIn";
+// ============================================================
+// Brightloop frontend: auth + shared API helper
+// Load this file BEFORE app.js on every page.
+// ============================================================
+const API_BASE = "http://127.0.0.1:8000/api";
+const DEMO_LOGGED_IN_KEY = "brightloopDemoLoggedIn"; // kept so existing dashboard checks still work
 
-function getDemoUser() {
+async function api(path, method = "GET", body = null) {
+  const token = localStorage.getItem("token");
+  let res;
   try {
-    return JSON.parse(localStorage.getItem(DEMO_USER_KEY));
-  } catch {
-    return null;
+    res = await fetch(API_BASE + path, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body ? JSON.stringify(body) : null,
+    });
+  } catch (err) {
+    throw new Error("Cannot reach the server. Is the backend (uvicorn) running?");
   }
+
+  const data = await res.json().catch(() => ({}));
+
+  if (res.status === 401 && token) {
+    clearSession();
+    window.location.href = "login.html";
+    throw new Error("Session expired. Please log in again.");
+  }
+  if (!res.ok) {
+    let msg = data.detail;
+    if (Array.isArray(msg)) msg = msg.map((e) => e.msg).join(", ");
+    throw new Error(msg || "Something went wrong.");
+  }
+  return data;
+}
+
+function clearSession() {
+  ["token", "role", "user_id", "user_name", DEMO_LOGGED_IN_KEY].forEach((k) =>
+    localStorage.removeItem(k)
+  );
 }
 
 function setMessage(elementId, message, isError = true) {
   const element = document.getElementById(elementId);
-
   if (element) {
     element.textContent = message;
     element.style.color = isError ? "#b42318" : "#197344";
@@ -28,17 +59,28 @@ function isStrongPassword(password) {
   );
 }
 
-// Registration demo: keeps the register page working.
+// ------------------------------------------------------------
+// Page guard: every page except login/register needs a token
+// ------------------------------------------------------------
+const currentPage = window.location.pathname.split("/").pop() || "index.html";
+const publicPages = ["login.html", "register.html"];
+
+if (!publicPages.includes(currentPage) && !localStorage.getItem("token")) {
+  window.location.href = "login.html";
+}
+
+// ------------------------------------------------------------
+// Register (real backend; role is always "customer")
+// ------------------------------------------------------------
 const registerForm = document.getElementById("registerForm");
 
 if (registerForm) {
-  registerForm.addEventListener("submit", (event) => {
+  registerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const fullName = document.getElementById("fullName").value.trim();
     const companyName = document.getElementById("companyName").value.trim();
     const email = document.getElementById("registerEmail").value.trim().toLowerCase();
-    const phone = document.getElementById("phone").value.trim();
     const password = document.getElementById("registerPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
     const termsAccepted = document.getElementById("terms").checked;
@@ -47,7 +89,6 @@ if (registerForm) {
       setMessage("registerMessage", "Please fill in all required fields.");
       return;
     }
-
     if (!isStrongPassword(password)) {
       setMessage(
         "registerMessage",
@@ -55,74 +96,143 @@ if (registerForm) {
       );
       return;
     }
-
     if (password !== confirmPassword) {
       setMessage("registerMessage", "Passwords do not match.");
       return;
     }
-
     if (!termsAccepted) {
       setMessage("registerMessage", "Please accept the terms and conditions.");
       return;
     }
 
-    const existingUser = getDemoUser();
-
-    if (existingUser && existingUser.email === email) {
-      setMessage("registerMessage", "This email is already registered. Please log in.");
-      return;
+    try {
+      await api("/register", "POST", { name: fullName, email, password });
+      setMessage("registerMessage", "Account created. Redirecting to login…", false);
+      setTimeout(() => (window.location.href = "login.html"), 800);
+    } catch (err) {
+      // includes "An account with this email already exists."
+      setMessage("registerMessage", err.message);
     }
-
-    const user = { fullName, companyName, email, phone };
-
-    localStorage.setItem(DEMO_USER_KEY, JSON.stringify(user));
-    localStorage.setItem(DEMO_PASSWORD_KEY, password);
-
-    setMessage("registerMessage", "Account created. Redirecting to login…", false);
-
-    window.setTimeout(() => {
-      window.location.href = "login.html";
-    }, 800);
   });
 }
 
-// Login demo: sets the same login key used by the dashboard.
+// ------------------------------------------------------------
+// Login (real backend)
+// ------------------------------------------------------------
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
-  loginForm.addEventListener("submit", (event) => {
+  clearSession(); // always start the login page clean
+
+  loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const email = document.getElementById("loginEmail").value.trim().toLowerCase();
     const password = document.getElementById("loginPassword").value;
-    const user = getDemoUser();
-    const savedPassword = localStorage.getItem(DEMO_PASSWORD_KEY);
 
-    if (!user || user.email !== email || savedPassword !== password) {
-      setMessage("loginMessage", "Email or password is incorrect, or no demo account exists.");
-      return;
+    try {
+      const data = await api("/login", "POST", { email, password });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("user_id", data.user_id);
+      localStorage.setItem("user_name", data.name || email);
+      localStorage.setItem(DEMO_LOGGED_IN_KEY, "true");
+      window.location.href = "index.html";
+    } catch (err) {
+      setMessage("loginMessage", err.message);
     }
-
-    localStorage.setItem(DEMO_LOGGED_IN_KEY, "true");
-    window.location.href = "index.html";
   });
 }
 
+// ------------------------------------------------------------
+// Forgot password: add <a href="#" id="forgotPasswordLink">Forgot password?</a> to login.html
+// ------------------------------------------------------------
+const forgotLink = document.getElementById("forgotPasswordLink");
+
+if (forgotLink) {
+  forgotLink.addEventListener("click", async (event) => {
+    event.preventDefault();
+    const typed = document.getElementById("loginEmail");
+    const email = (prompt("Enter your registered email:", typed ? typed.value : "") || "").trim();
+    if (!email) return;
+    try {
+      const data = await api("/forgot-password", "POST", { email });
+      setMessage("loginMessage", data.message, false);
+    } catch (err) {
+      setMessage("loginMessage", err.message);
+    }
+  });
+}
+
+// ------------------------------------------------------------
+// Reset password: needs a #resetForm on login.html (see note below)
+// Link format from the backend: login.html?reset_token=XXXX
+// ------------------------------------------------------------
+const resetForm = document.getElementById("resetForm");
+
+if (resetForm) {
+  const resetToken = new URLSearchParams(window.location.search).get("reset_token");
+  if (resetToken) {
+    resetForm.style.display = "block";
+    if (loginForm) loginForm.style.display = "none";
+  }
+
+  resetForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmNew = document.getElementById("confirmNewPassword").value;
+
+    if (!isStrongPassword(newPassword)) {
+      setMessage("resetMessage", "Password must be at least 9 characters and include uppercase, lowercase, and a special character.");
+      return;
+    }
+    if (newPassword !== confirmNew) {
+      setMessage("resetMessage", "Passwords do not match.");
+      return;
+    }
+    try {
+      const data = await api("/reset-password", "POST", { token: resetToken, new_password: newPassword });
+      setMessage("resetMessage", data.message, false);
+      setTimeout(() => (window.location.href = "login.html"), 1200);
+    } catch (err) {
+      setMessage("resetMessage", err.message);
+    }
+  });
+}
+
+// ------------------------------------------------------------
 // Logout
+// ------------------------------------------------------------
 const logoutBtn = document.getElementById("logoutBtn");
 
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem(DEMO_LOGGED_IN_KEY);
+    clearSession();
     window.location.href = "login.html";
   });
 }
 
-// Demo billing button
+// ------------------------------------------------------------
+// Run billing button (admin/staff only)
+// ------------------------------------------------------------
 const runBillingBtn = document.getElementById("runBillingBtn");
 
 if (runBillingBtn) {
-  runBillingBtn.addEventListener("click", () => {
-    alert("Demo only: connect this button to the backend billing API.");
+  const role = localStorage.getItem("role");
+  if (role === "customer") {
+    runBillingBtn.style.display = "none";
+  }
+
+  runBillingBtn.addEventListener("click", async () => {
+    runBillingBtn.disabled = true;
+    try {
+      const data = await api("/billing/run?auto_confirm=true", "POST");
+      alert(`${data.message}\nInvoices generated: ${data.invoices_generated}\nTotal billed: ${data.total_amount_billed}`);
+      if (typeof loadDashboard === "function") loadDashboard(); // defined in app.js
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      runBillingBtn.disabled = false;
+    }
   });
 }
