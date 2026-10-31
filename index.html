@@ -3,203 +3,94 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brightloop | Subscription Management</title>
+    <title>Brightloop | Subscription Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-
   <body>
-    <aside class="sidebar">
-      <h2>Brightloop</h2>
-      <p class="subtitle">Subscription Manager</p>
+    <header class="topbar">
+      <a class="brand" href="index.html">Brightloop</a>
 
-      <nav>
-        <a href="#" class="active" data-page="dashboardPage">Dashboard</a>
-        <a href="#" data-page="productsPage">Products &amp; Plans</a>
-        <a href="#">Subscriptions</a>
-        <a href="#" data-page="invoicesPage">Invoices</a>
-        <a href="#" data-page="paymentsPage">Payments</a>
+      <nav class="topbar-actions">
+        <button id="logoutBtn" type="button">Logout</button>
       </nav>
-    </aside>
+    </header>
 
-    <main class="main">
-      <header>
-        <div>
-          <h1 id="pageTitle">Dashboard</h1>
-          <p id="pageDescription">
-            Welcome back! Here's your business overview.
-          </p>
+    <main class="dashboard">
+      <aside class="sidebar">
+        <h2>Menu</h2>
+        <a class="active" href="#dashboard">Dashboard</a>
+        <a href="#products">Products &amp; Plans</a>
+        <a href="#subscriptions">Subscriptions</a>
+        <a href="#invoices">Invoices</a>
+        <a href="#payments">Payments</a>
+      </aside>
+
+      <section class="main-content" id="dashboard">
+        <div class="page-heading">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Overview of your subscription business.</p>
+          </div>
+          <button id="runBillingBtn" type="button">Run Billing Day</button>
         </div>
-        <button id="billingBtn" type="button">Run Billing Day</button>
-      </header>
 
-      <section id="dashboardPage">
-        <section class="cards">
-          <div class="card">
+        <div class="stats-grid">
+          <article class="stat-card">
+            <p>Total Customers</p>
+            <h2>1,248</h2>
+          </article>
+          <article class="stat-card">
             <p>Active Subscriptions</p>
-            <h2 id="activeCount">250</h2>
-          </div>
-
-          <div class="card">
+            <h2>936</h2>
+          </article>
+          <article class="stat-card">
             <p>Monthly Revenue</p>
-            <h2 id="revenue">₹2,50,000</h2>
-          </div>
-
-          <div class="card">
-            <p>Payments Received</p>
-            <h2>₹2,00,000</h2>
-          </div>
-
-          <div class="card">
-            <p>Overdue Invoices</p>
-            <h2>12</h2>
-          </div>
-        </section>
+            <h2>₹4,82,500</h2>
+          </article>
+          <article class="stat-card">
+            <p>Pending Payments</p>
+            <h2>24</h2>
+          </article>
+        </div>
 
         <section class="panel">
           <h2>Recent Subscriptions</h2>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="subscriptionTable"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Next Billing</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Arun Kumar</td>
+                  <td>Premium</td>
+                  <td><span class="status active-status">Active</span></td>
+                  <td>Nov 15, 2026</td>
+                </tr>
+                <tr>
+                  <td>Priya S</td>
+                  <td>Basic</td>
+                  <td><span class="status pending-status">Pending</span></td>
+                  <td>Nov 18, 2026</td>
+                </tr>
+                <tr>
+                  <td>Rahul M</td>
+                  <td>Business</td>
+                  <td><span class="status active-status">Active</span></td>
+                  <td>Nov 20, 2026</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
-      </section>
-
-      <section id="productsPage" hidden>
-        <div class="panel">
-          <h2>Add New Product</h2>
-
-          <form id="productForm">
-            <input
-              id="productName"
-              type="text"
-              placeholder="Product name"
-              required
-            />
-
-            <input
-              id="productPrice"
-              type="number"
-              placeholder="Sales price"
-              min="0"
-              step="0.01"
-              required
-            />
-
-            <select id="productType" required>
-              <option value="">Select product type</option>
-              <option value="Software">Software</option>
-              <option value="Add-on">Add-on</option>
-              <option value="Service">Service</option>
-            </select>
-
-            <button type="submit">Add Product</button>
-          </form>
-        </div>
-
-        <div class="panel">
-          <h2>Products &amp; Plans</h2>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Type</th>
-                <th>Sales Price</th>
-              </tr>
-            </thead>
-            <tbody id="productTable"></tbody>
-          </table>
-        </div>
-      </section>
-      <section id="subscriptionsPage" hidden>
-        <div class="panel">
-          <h2>Add Subscription</h2>
-          <form id="subscriptionForm">
-            <input
-              id="customerName"
-              type="text"
-              placeholder="Customer name"
-              required
-            />
-            <input
-              id="subscriptionPlan"
-              type="text"
-              placeholder="Plan name"
-              required
-            />
-            <input
-              id="subscriptionAmount"
-              type="number"
-              min="0"
-              placeholder="Amount"
-              required
-            />
-            <button type="submit">Add Subscription</button>
-          </form>
-        </div>
-
-        <div class="panel">
-          <h2>Subscriptions</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="allSubscriptionsTable"></tbody>
-          </table>
-        </div>
-      </section>
-      <section id="invoicesPage" hidden>
-        <div class="panel">
-          <h2>Invoices</h2>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Invoice ID</th>
-                <th>Customer</th>
-                <th>Amount</th>
-                <th>Due Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="invoiceTable"></tbody>
-          </table>
-        </div>
-      </section>
-      <section id="paymentsPage" hidden>
-        <div class="panel">
-          <h2>Payments</h2>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Payment ID</th>
-                <th>Customer</th>
-                <th>Amount</th>
-                <th>Payment Date</th>
-                <th>Method</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="paymentTable"></tbody>
-          </table>
-        </div>
       </section>
     </main>
 
-    <script src="app.js"></script>
+    <script src="auth.js"></script>
   </body>
 </html>
