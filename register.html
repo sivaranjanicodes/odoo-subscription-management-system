@@ -3,32 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Account | Brightloop</title>
+    <title>Register | Brightloop</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="auth-page">
     <main class="auth-card">
-      <h1>Brightloop</h1>
-      <h2>Create your account</h2>
-      <p>Register your business to manage subscriptions and invoices.</p>
+      <a class="brand" href="index.html">Brightloop</a>
+      <h1>Create your account</h1>
+      <p>Register as a customer.</p>
 
       <form id="registerForm">
-        <label for="registerName">Full name</label>
+        <label for="fullName">Full name</label>
         <input
-          id="registerName"
-          name="name"
+          id="fullName"
+          name="fullName"
           type="text"
-          placeholder="Enter your full name"
           autocomplete="name"
           required
         />
 
-        <label for="registerCompany">Company name</label>
+        <label for="companyName">Company name</label>
         <input
-          id="registerCompany"
-          name="company"
+          id="companyName"
+          name="companyName"
           type="text"
-          placeholder="Enter your company name"
           autocomplete="organization"
           required
         />
@@ -38,55 +36,47 @@
           id="registerEmail"
           name="email"
           type="email"
-          placeholder="name@company.com"
           autocomplete="email"
           required
         />
 
-        <label for="registerPhone">Phone number</label>
-        <input
-          id="registerPhone"
-          name="phone"
-          type="tel"
-          placeholder="Enter your phone number"
-          autocomplete="tel"
-        />
+        <label for="phone">Phone (optional)</label>
+        <input id="phone" name="phone" type="tel" autocomplete="tel" />
 
         <label for="registerPassword">Password</label>
         <input
           id="registerPassword"
           name="password"
           type="password"
-          placeholder="Create a password"
           autocomplete="new-password"
-          minlength="9"
           required
         />
-        <small>
-          Use at least 9 characters, including uppercase, lowercase, and a
-          special character.
-        </small>
+        <small
+          >At least 9 characters, including uppercase, lowercase, and a special
+          character.</small
+        >
 
         <label for="confirmPassword">Confirm password</label>
         <input
           id="confirmPassword"
           name="confirmPassword"
           type="password"
-          placeholder="Enter the password again"
           autocomplete="new-password"
           required
         />
 
-        <label class="terms-label">
-          <input id="acceptTerms" type="checkbox" required />
+        <label class="checkbox-label">
+          <input id="terms" name="terms" type="checkbox" required />
           I agree to the terms and conditions.
         </label>
 
-        <button type="submit">Create account</button>
-        <p id="registerMessage" role="status"></p>
+        <p id="registerMessage" class="form-message" aria-live="polite"></p>
+        <button class="full-button" type="submit">Create account</button>
       </form>
 
-      <p>Already have an account? <a href="login.html">Log in</a></p>
+      <p class="auth-footer">
+        Already have an account? <a href="login.html">Login</a>
+      </p>
     </main>
 
     <script src="auth.js"></script>
