@@ -18,13 +18,13 @@ from typing import List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import get_db_connection, init_db
 
-app = FastAPI(title="Brightloop Subscription Engine API", version="2.0.0")
+app = FastAPI(title="Brightloop Subscription Engine API", version="3.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,13 +34,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SECRET_KEY = os.environ.get("SECRET_KEY", "brightloop-dev-secret-change-me")
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://127.0.0.1:5500")
-
-
-@app.on_event("startup")
-def startup_event():
-    init_db()
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://127.0.0.1:8000")
 
 
 # ==========================================
@@ -58,6 +54,33 @@ def db():
         raise
     finally:
         conn.close()
+
+
+@app.on_event("startup")
+def startup_event():
+    init_db()
+    with db() as conn:
+        # safe migrations for databases created from an older schema.sql
+        cols = [r["name"] for r in conn.execute("PRAGMA table_info(subscriptions)").fetchall()]
+        if "quote_valid_until" not in cols:
+            conn.execute("ALTER TABLE subscriptions ADD COLUMN quote_valid_until DATE")
+        conn.execute("""CREATE TABLE IF NOT EXISTS quotation_template_lines (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            template_id INTEGER NOT NULL REFERENCES quotation_templates(id),
+            product_id INTEGER NOT NULL REFERENCES products(id),
+            variant_id INTEGER REFERENCES product_variants(id),
+            quantity INTEGER DEFAULT 1)""")
+        for stmt in (
+            "CREATE INDEX IF NOT EXISTS idx_inv_sub ON invoices(subscription_id)",
+            "CREATE INDEX IF NOT EXISTS idx_invlines_inv ON invoice_lines(invoice_id)",
+            "CREATE INDEX IF NOT EXISTS idx_sublines_sub ON subscription_lines(subscription_id)",
+            "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
+        ):
+            conn.execute(stmt)
+        empty = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
+    if empty:
+        from seed import seed_data
+        seed_data()
 
 
 def sha(text: str) -> str:
@@ -359,7 +382,7 @@ def forgot_password(body: ForgotPassword):
                 "INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)",
                 (user["id"], sha(raw), expires),
             )
-            link = f"{FRONTEND_URL}/index.html?reset_token={raw}"
+            link = f"{FRONTEND_URL}/login.html?reset_token={raw}"
             send_email(user["email"], "Reset your Brightloop password",
                        f"Click the link to reset your password (valid for 1 hour):\n{link}")
     # same answer whether or not the email exists
@@ -512,6 +535,10 @@ def get_templates(user=Depends(require_roles(*STAFF))):
 
 @app.post("/api/quotation-templates")
 def create_template(t: TemplateCreate, user=Depends(require_roles(*STAFF))):
+    if not t.lines:
+        raise HTTPException(400, "Add at least one product line to the template.")
+    if t.validity_days < 1:
+        raise HTTPException(400, "Validity must be at least 1 day.")
     with db() as conn:
         if not conn.execute("SELECT 1 FROM plans WHERE id = ?", (t.plan_id,)).fetchone():
             raise HTTPException(404, "Plan not found")
@@ -528,7 +555,7 @@ def create_template(t: TemplateCreate, user=Depends(require_roles(*STAFF))):
 
 
 # ==========================================
-# DISCOUNTS (admin only)
+# DISCOUNTS (admin only to create)
 # ==========================================
 
 @app.get("/api/discounts")
@@ -546,7 +573,7 @@ def create_discount(d: DiscountCreate, user=Depends(require_roles("admin"))):
     if d.applies_to not in ("product", "subscription"):
         raise HTTPException(400, "applies_to must be product or subscription.")
     if d.applies_to == "product" and not d.product_id:
-        raise HTTPException(400, "product_id is required for a product discount.")
+        raise HTTPException(400, "Choose a product for a product discount.")
     if d.start_date and d.end_date and parse_date(d.end_date, "end_date") < parse_date(d.start_date, "start_date"):
         raise HTTPException(400, "end_date cannot be before start_date.")
     with db() as conn:
@@ -699,10 +726,10 @@ def create_subscription(sub: SubscriptionCreate, user=Depends(require_roles(*STA
 
         cur = conn.execute(
             """INSERT INTO subscriptions (subscription_number, customer_id, plan_id, template_id,
-                                          start_date, expiry_date, payment_terms, status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Draft')""",
+                                          start_date, expiry_date, payment_terms, status, quote_valid_until)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'Draft', ?)""",
             (f"TMP-{uuid.uuid4().hex}", sub.customer_id, plan_id, sub.template_id,
-             sub.start_date, sub.expiry_date, sub.payment_terms),
+             sub.start_date, sub.expiry_date, sub.payment_terms, quote_valid_until),
         )
         sub_id = cur.lastrowid
         sub_number = f"SUB-{sub_id:04d}"
@@ -748,6 +775,9 @@ def update_subscription_status(subscription_id: int, status: str, user=Depends(g
         if status not in SUB_FLOW[sub["status"]]:
             raise HTTPException(400, f"Cannot move from {sub['status']} to {status}. "
                                      f"Allowed: {', '.join(SUB_FLOW[sub['status']]) or 'none'}.")
+        if (sub["status"] == "Quotation" and status == "Confirmed" and sub["quote_valid_until"]
+                and sub["quote_valid_until"] < date.today().isoformat()):
+            raise HTTPException(400, f"This quotation expired on {sub['quote_valid_until']}. Create a new one.")
         conn.execute("UPDATE subscriptions SET status = ? WHERE id = ?", (status, subscription_id))
     return {"message": f"Subscription status updated to {status}"}
 
@@ -948,7 +978,7 @@ def send_invoice(invoice_id: int, user=Depends(require_roles(*STAFF))):
 
 @app.get("/api/invoices/{invoice_id}/print", response_class=HTMLResponse)
 def print_invoice(invoice_id: int, user=Depends(get_current_user)):
-    """Open as /api/invoices/ID/print?token=YOUR_TOKEN in a new tab, then press Ctrl+P."""
+    """Open as /api/invoices/ID/print?token=YOUR_TOKEN in a new tab."""
     with db() as conn:
         inv = load_invoice(conn, invoice_id, user)
         lines = conn.execute("SELECT * FROM invoice_lines WHERE invoice_id = ?", (invoice_id,)).fetchall()
@@ -1093,3 +1123,22 @@ def get_dashboard_summary(date_from: Optional[str] = None, date_to: Optional[str
         "overdue_invoices": out[3],
         "unpaid_invoices": out[1],
     }
+
+
+# ==========================================
+# SERVE THE WEBSITE (keep this at the very bottom)
+# ==========================================
+
+FRONTEND_FILES = {"index.html", "login.html", "register.html", "app.js", "auth.js", "styles.css"}
+
+
+@app.get("/", include_in_schema=False)
+def site_home():
+    return RedirectResponse("/login.html")
+
+
+@app.get("/{filename}", include_in_schema=False)
+def site_file(filename: str):
+    if filename in FRONTEND_FILES:
+        return FileResponse(os.path.join(BASE_DIR, filename))
+    raise HTTPException(404, "Not found")

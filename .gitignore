@@ -1,0 +1,5 @@
+brightloop.db
+__pycache__/
+*.pyc
+start.ps1
+.env
