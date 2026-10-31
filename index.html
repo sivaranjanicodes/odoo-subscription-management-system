@@ -12,194 +12,275 @@
       <h2>Brightloop</h2>
       <p class="subtitle">Subscription Manager</p>
 
-      <nav>
-        <a href="#" class="active" data-page="dashboardPage">Dashboard</a>
-        <a href="#" data-page="productsPage">Products &amp; Plans</a>
-        <a href="#">Subscriptions</a>
-        <a href="#" data-page="invoicesPage">Invoices</a>
-        <a href="#" data-page="paymentsPage">Payments</a>
+      <nav id="mainNav">
+        <a href="#" data-page="dashboardPage" data-roles="admin,staff">Dashboard</a>
+        <a href="#" data-page="productsPage" data-roles="admin,staff">Products &amp; Plans</a>
+        <a href="#" data-page="subscriptionsPage" data-roles="admin,staff,customer">Subscriptions</a>
+        <a href="#" data-page="invoicesPage" data-roles="admin,staff,customer">Invoices</a>
+        <a href="#" data-page="paymentsPage" data-roles="admin,staff">Payments</a>
+        <a href="#" data-page="discountsPage" data-roles="admin,staff">Discounts</a>
+        <a href="#" data-page="staffPage" data-roles="admin">Team</a>
       </nav>
+
+      <p class="subtitle" id="userInfo"></p>
+      <button id="logoutBtn" type="button">Log out</button>
     </aside>
 
     <main class="main">
       <header>
         <div>
           <h1 id="pageTitle">Dashboard</h1>
-          <p id="pageDescription">
-            Welcome back! Here's your business overview.
-          </p>
+          <p id="pageDescription">Welcome back! Here's your business overview.</p>
         </div>
-        <button id="billingBtn" type="button">Run Billing Day</button>
+        <button id="runBillingBtn" type="button" data-roles="admin,staff">Run Billing Day</button>
       </header>
 
-      <section id="dashboardPage">
+      <!-- ================= DASHBOARD ================= -->
+      <section id="dashboardPage" hidden>
+        <div class="panel">
+          <h2>Filter</h2>
+          <form id="dashFilterForm">
+            <label>From <input id="dashFrom" type="date" /></label>
+            <label>To <input id="dashTo" type="date" /></label>
+            <button type="submit">Apply</button>
+          </form>
+        </div>
+
         <section class="cards">
-          <div class="card">
-            <p>Active Subscriptions</p>
-            <h2 id="activeCount">250</h2>
-          </div>
+          <div class="card"><p>Active Subscriptions</p><h2 id="activeCount">0</h2></div>
+          <div class="card"><p>Monthly Recurring Revenue</p><h2 id="revenue">₹0</h2></div>
+          <div class="card"><p>Payments Received</p><h2 id="paymentsReceived">₹0</h2></div>
+          <div class="card"><p>Outstanding</p><h2 id="outstandingAmount">₹0</h2></div>
+          <div class="card"><p>Overdue Invoices</p><h2 id="overdueCount">0</h2></div>
+        </section>
 
-          <div class="card">
-            <p>Monthly Revenue</p>
-            <h2 id="revenue">₹2,50,000</h2>
-          </div>
-
-          <div class="card">
-            <p>Payments Received</p>
-            <h2>₹2,00,000</h2>
-          </div>
-
-          <div class="card">
-            <p>Overdue Invoices</p>
-            <h2>12</h2>
-          </div>
+        <section class="panel">
+          <h2>Overdue Invoices</h2>
+          <table>
+            <thead>
+              <tr><th>Invoice</th><th>Customer</th><th>Due Date</th><th>Outstanding</th></tr>
+            </thead>
+            <tbody id="overdueTable"></tbody>
+          </table>
         </section>
 
         <section class="panel">
           <h2>Recent Subscriptions</h2>
-
           <table>
             <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
+              <tr><th>Customer</th><th>Plan</th><th>Number</th><th>Status</th></tr>
             </thead>
             <tbody id="subscriptionTable"></tbody>
           </table>
         </section>
       </section>
 
+      <!-- ================= PRODUCTS & PLANS ================= -->
       <section id="productsPage" hidden>
-        <div class="panel">
+        <div class="panel" data-roles="admin">
+          <h2>Add Tax</h2>
+          <form id="taxForm">
+            <input id="taxName" type="text" placeholder="Tax name (e.g. GST 18%)" required />
+            <input id="taxRate" type="number" placeholder="Rate %" min="0" step="0.01" required />
+            <button type="submit">Add Tax</button>
+          </form>
+        </div>
+
+        <div class="panel" data-roles="admin">
           <h2>Add New Product</h2>
-
           <form id="productForm">
-            <input
-              id="productName"
-              type="text"
-              placeholder="Product name"
-              required
-            />
-
-            <input
-              id="productPrice"
-              type="number"
-              placeholder="Sales price"
-              min="0"
-              step="0.01"
-              required
-            />
-
+            <input id="productName" type="text" placeholder="Product name" required />
             <select id="productType" required>
               <option value="">Select product type</option>
               <option value="Software">Software</option>
               <option value="Add-on">Add-on</option>
               <option value="Service">Service</option>
             </select>
-
+            <input id="productPrice" type="number" placeholder="Sales price" min="0" step="0.01" required />
+            <input id="productCost" type="number" placeholder="Cost price" min="0" step="0.01" required />
+            <select id="productTax"></select>
+            <input id="productNotes" type="text" placeholder="Notes" />
             <button type="submit">Add Product</button>
           </form>
         </div>
 
-        <div class="panel">
-          <h2>Products &amp; Plans</h2>
+        <div class="panel" data-roles="admin">
+          <h2>Add Product Variant</h2>
+          <form id="variantForm">
+            <select id="variantProduct" required></select>
+            <input id="variantName" type="text" placeholder="Variant (e.g. Brand: Odoo)" required />
+            <input id="variantExtra" type="number" placeholder="Extra price (e.g. 560)" step="0.01" required />
+            <button type="submit">Add Variant</button>
+          </form>
+        </div>
 
+        <div class="panel">
+          <h2>Products</h2>
           <table>
             <thead>
-              <tr>
-                <th>Product</th>
-                <th>Type</th>
-                <th>Sales Price</th>
-              </tr>
+              <tr><th>Product</th><th>Type</th><th>Sales Price</th><th>Cost</th><th>Tax</th><th>Variants</th></tr>
             </thead>
             <tbody id="productTable"></tbody>
           </table>
         </div>
-      </section>
-      <section id="subscriptionsPage" hidden>
+
+        <div class="panel" data-roles="admin">
+          <h2>Add Plan</h2>
+          <form id="planForm">
+            <input id="planName" type="text" placeholder="Plan name" required />
+            <select id="planPeriod" required>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly" selected>Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+            <input id="planPrice" type="number" placeholder="Price" min="0" step="0.01" required />
+            <input id="planMinQty" type="number" placeholder="Minimum quantity" min="1" value="1" />
+            <label>Available from <input id="planStart" type="date" /></label>
+            <label>Available until <input id="planEnd" type="date" /></label>
+            <label><input id="planAutoClose" type="checkbox" /> Close automatically at end date</label>
+            <label><input id="planAllowPause" type="checkbox" checked /> Allow pause / renew / early close</label>
+            <button type="submit">Add Plan</button>
+          </form>
+        </div>
+
         <div class="panel">
+          <h2>Plans</h2>
+          <table>
+            <thead>
+              <tr><th>Plan</th><th>Billing</th><th>Price</th><th>Min Qty</th><th>Available</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="planTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= SUBSCRIPTIONS ================= -->
+      <section id="subscriptionsPage" hidden>
+        <div class="panel" data-roles="admin,staff">
           <h2>Add Subscription</h2>
           <form id="subscriptionForm">
-            <input
-              id="customerName"
-              type="text"
-              placeholder="Customer name"
-              required
-            />
-            <input
-              id="subscriptionPlan"
-              type="text"
-              placeholder="Plan name"
-              required
-            />
-            <input
-              id="subscriptionAmount"
-              type="number"
-              min="0"
-              placeholder="Amount"
-              required
-            />
-            <button type="submit">Add Subscription</button>
+            <select id="subCustomer" required></select>
+            <select id="subTemplate"></select>
+            <select id="subPlan"></select>
+            <label>Start <input id="subStart" type="date" required /></label>
+            <label>Expiry <input id="subExpiry" type="date" required /></label>
+            <input id="subTerms" type="text" placeholder="Payment terms" value="Net 15" required />
+
+            <h3>Product lines</h3>
+            <select id="lineProduct"></select>
+            <select id="lineVariant"></select>
+            <input id="lineQty" type="number" min="1" value="1" />
+            <button type="button" id="addLineBtn">Add line</button>
+            <ul id="pendingLines"></ul>
+            <p><small>If you pick a template and add no lines, the template's lines are used.</small></p>
+
+            <button type="submit">Create Subscription</button>
           </form>
         </div>
 
         <div class="panel">
           <h2>Subscriptions</h2>
+          <input id="subSearch" type="text" placeholder="Search number or email" />
+          <select id="subStatusFilter">
+            <option value="">All statuses</option>
+            <option>Draft</option><option>Quotation</option><option>Confirmed</option>
+            <option>Active</option><option>Closed</option>
+          </select>
           <table>
             <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
+              <tr><th>Number</th><th>Customer</th><th>Plan</th><th>Start → Expiry</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody id="allSubscriptionsTable"></tbody>
           </table>
         </div>
       </section>
+
+      <!-- ================= INVOICES ================= -->
       <section id="invoicesPage" hidden>
         <div class="panel">
           <h2>Invoices</h2>
-
+          <input id="invSearch" type="text" placeholder="Search invoice or email" />
+          <select id="invStatusFilter">
+            <option value="">All statuses</option>
+            <option>Draft</option><option>Confirmed</option><option>Paid</option><option>Cancelled</option>
+          </select>
+          <label><input id="invOverdueOnly" type="checkbox" /> Overdue only</label>
           <table>
             <thead>
-              <tr>
-                <th>Invoice ID</th>
-                <th>Customer</th>
-                <th>Amount</th>
-                <th>Due Date</th>
-                <th>Status</th>
-              </tr>
+              <tr><th>Invoice</th><th>Customer</th><th>Period</th><th>Total</th><th>Outstanding</th><th>Due Date</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody id="invoiceTable"></tbody>
           </table>
         </div>
       </section>
+
+      <!-- ================= PAYMENTS ================= -->
       <section id="paymentsPage" hidden>
         <div class="panel">
           <h2>Payments</h2>
-
           <table>
             <thead>
-              <tr>
-                <th>Payment ID</th>
-                <th>Customer</th>
-                <th>Amount</th>
-                <th>Payment Date</th>
-                <th>Method</th>
-                <th>Status</th>
-              </tr>
+              <tr><th>Payment ID</th><th>Invoice</th><th>Customer</th><th>Amount</th><th>Payment Date</th><th>Method</th><th>Note</th></tr>
             </thead>
             <tbody id="paymentTable"></tbody>
           </table>
         </div>
       </section>
+
+      <!-- ================= DISCOUNTS ================= -->
+      <section id="discountsPage" hidden>
+        <div class="panel" data-roles="admin">
+          <h2>Create Discount Rule</h2>
+          <form id="discountForm">
+            <input id="discCode" type="text" placeholder="Code (e.g. SEATS10)" required />
+            <select id="discType">
+              <option value="percentage">Percentage</option>
+              <option value="fixed">Fixed amount</option>
+            </select>
+            <input id="discValue" type="number" placeholder="Value" min="0" step="0.01" required />
+            <input id="discMinAmount" type="number" placeholder="Minimum purchase amount" min="0" value="0" />
+            <input id="discMinQty" type="number" placeholder="Minimum quantity" min="1" value="1" />
+            <label>Start <input id="discStart" type="date" /></label>
+            <label>End <input id="discEnd" type="date" /></label>
+            <input id="discMaxUses" type="number" placeholder="Maximum uses" min="1" />
+            <select id="discAppliesTo">
+              <option value="subscription">Whole subscriptions</option>
+              <option value="product">A specific product</option>
+            </select>
+            <select id="discProduct"></select>
+            <button type="submit">Create Discount</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h2>Discount Rules</h2>
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Value</th><th>Minimum</th><th>Dates</th><th>Used</th><th>Applies to</th></tr>
+            </thead>
+            <tbody id="discountTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= TEAM (admin) ================= -->
+      <section id="staffPage" hidden>
+        <div class="panel" data-roles="admin">
+          <h2>Add Staff Member</h2>
+          <form id="staffForm">
+            <input id="staffName" type="text" placeholder="Full name" required />
+            <input id="staffEmail" type="email" placeholder="Email" required />
+            <input id="staffPassword" type="password" placeholder="Temporary password" required />
+            <button type="submit">Add Staff</button>
+          </form>
+        </div>
+      </section>
     </main>
 
+    <div id="toast"></div>
+
+    <script src="auth.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
