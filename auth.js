@@ -2,8 +2,11 @@
 // Brightloop frontend: auth + shared API helper
 // Load this file BEFORE app.js on every page.
 // ============================================================
-const API_BASE = "http://127.0.0.1:8000/api";
-const DEMO_LOGGED_IN_KEY = "brightloopDemoLoggedIn"; // kept so existing dashboard checks still work
+// Works from the website (same server) and from Go Live (port 5500/5501)
+const API_BASE = ["5500", "5501"].includes(window.location.port)
+  ? "http://127.0.0.1:8000/api"
+  : "/api";
+const DEMO_LOGGED_IN_KEY = "brightloopDemoLoggedIn";
 
 async function api(path, method = "GET", body = null) {
   const token = localStorage.getItem("token");
@@ -18,7 +21,7 @@ async function api(path, method = "GET", body = null) {
       body: body ? JSON.stringify(body) : null,
     });
   } catch (err) {
-    throw new Error("Cannot reach the server. Is the backend (uvicorn) running?");
+    throw new Error("Cannot reach the server. Is the backend running?");
   }
 
   const data = await res.json().catch(() => ({}));
@@ -110,7 +113,6 @@ if (registerForm) {
       setMessage("registerMessage", "Account created. Redirecting to login…", false);
       setTimeout(() => (window.location.href = "login.html"), 800);
     } catch (err) {
-      // includes "An account with this email already exists."
       setMessage("registerMessage", err.message);
     }
   });
@@ -122,7 +124,7 @@ if (registerForm) {
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
-  clearSession(); // always start the login page clean
+  clearSession();
 
   loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -145,7 +147,7 @@ if (loginForm) {
 }
 
 // ------------------------------------------------------------
-// Forgot password: add <a href="#" id="forgotPasswordLink">Forgot password?</a> to login.html
+// Forgot password
 // ------------------------------------------------------------
 const forgotLink = document.getElementById("forgotPasswordLink");
 
@@ -165,8 +167,7 @@ if (forgotLink) {
 }
 
 // ------------------------------------------------------------
-// Reset password: needs a #resetForm on login.html (see note below)
-// Link format from the backend: login.html?reset_token=XXXX
+// Reset password (page opened from the emailed link: login.html?reset_token=XXXX)
 // ------------------------------------------------------------
 const resetForm = document.getElementById("resetForm");
 
@@ -218,8 +219,7 @@ if (logoutBtn) {
 const runBillingBtn = document.getElementById("runBillingBtn");
 
 if (runBillingBtn) {
-  const role = localStorage.getItem("role");
-  if (role === "customer") {
+  if (localStorage.getItem("role") === "customer") {
     runBillingBtn.style.display = "none";
   }
 
@@ -228,7 +228,7 @@ if (runBillingBtn) {
     try {
       const data = await api("/billing/run?auto_confirm=true", "POST");
       alert(`${data.message}\nInvoices generated: ${data.invoices_generated}\nTotal billed: ${data.total_amount_billed}`);
-      if (typeof loadDashboard === "function") loadDashboard(); // defined in app.js
+      if (typeof loadDashboard === "function") loadDashboard();
     } catch (err) {
       alert(err.message);
     } finally {
