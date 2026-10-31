@@ -1,3 +1,6 @@
+// --------------------
+// Dashboard subscriptions
+// --------------------
 const subscriptions = [
   {
     customer: "ABC Technologies",
@@ -19,7 +22,6 @@ const subscriptions = [
   }
 ];
 
-// Fill the Recent Subscriptions table
 const subscriptionTable = document.getElementById("subscriptionTable");
 
 subscriptions.forEach((subscription) => {
@@ -35,10 +37,24 @@ subscriptions.forEach((subscription) => {
   subscriptionTable.appendChild(row);
 });
 
-// Dashboard / Products & Plans navigation
+
+// --------------------
+// Page navigation
+// --------------------
 const pageLinks = document.querySelectorAll(".sidebar nav a");
-const dashboardPage = document.getElementById("dashboardPage");
-const productsPage = document.getElementById("productsPage");
+
+const pages = {
+  "Dashboard": document.getElementById("dashboardPage"),
+  "Products & Plans": document.getElementById("productsPage"),
+  "Subscriptions": document.getElementById("subscriptionsPage")
+};
+
+const pageDescriptions = {
+  "Dashboard": "Welcome back! Here's your business overview.",
+  "Products & Plans": "Manage your products and subscription plans.",
+  "Subscriptions": "View and manage customer subscriptions."
+};
+
 const pageTitle = document.getElementById("pageTitle");
 const pageDescription = document.getElementById("pageDescription");
 
@@ -46,38 +62,44 @@ pageLinks.forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
 
-    const page = link.dataset.page;
+    const title = link.textContent.trim();
+    const selectedPage = pages[title];
 
-    // These two pages are implemented; other menu items are placeholders.
-    if (page !== "dashboardPage" && page !== "productsPage") {
+    // Ignore menu items whose pages are not built yet.
+    if (!selectedPage) {
       return;
     }
 
-    dashboardPage.hidden = page !== "dashboardPage";
-    productsPage.hidden = page !== "productsPage";
+    Object.values(pages).forEach((page) => {
+      page.hidden = true;
+    });
 
-    pageLinks.forEach((item) => item.classList.remove("active"));
+    selectedPage.hidden = false;
+
+    pageLinks.forEach((item) => {
+      item.classList.remove("active");
+    });
+
     link.classList.add("active");
-
-    if (page === "productsPage") {
-      pageTitle.textContent = "Products & Plans";
-      pageDescription.textContent =
-        "Manage your products and subscription plans.";
-    } else {
-      pageTitle.textContent = "Dashboard";
-      pageDescription.textContent =
-        "Welcome back! Here's your business overview.";
-    }
+    pageTitle.textContent = title;
+    pageDescription.textContent = pageDescriptions[title];
   });
 });
 
-// Demo billing button
+
+// --------------------
+// Run Billing Day button
+// --------------------
 document.getElementById("billingBtn").addEventListener("click", () => {
   alert("Billing API will be connected after backend integration.");
 });
 
-// Add products to the table (temporary browser-only data)
+
+// --------------------
+// Add products
+// --------------------
 const products = [];
+
 const productForm = document.getElementById("productForm");
 const productTable = document.getElementById("productTable");
 
