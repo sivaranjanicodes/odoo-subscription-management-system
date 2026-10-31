@@ -762,3 +762,19 @@ body.auth-page {
     border-radius: 20px;
   }
 }
+.auth-forgot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+  font-size: 13px;
+}
+
+.auth-forgot a {
+  color: #6555f4;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-forgot a:hover {
+  text-decoration: underline;
+}
